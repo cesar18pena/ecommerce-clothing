@@ -25,7 +25,6 @@ class App extends React.Component {
       if(userAuth){
         const userRef = await createUserProfileDocument(userAuth);
         userRef.onSnapshot(snapShot => {
-          console.log("TCL: App -> componentDidMount -> snapShot", snapShot)
           this.setState({
             currentUser: {
               id: snapShot.id,
