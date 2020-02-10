@@ -46,6 +46,20 @@ firebase.initializeApp(firebaseConfig);
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
+export const addCollectionAndItems = async (collectionKey, objectsToAdd) => {
+  const collectionRef = firestore.collection(collectionKey);
+  console.log(collectionRef);
+
+  const batch = firestore.batch();
+  objectsToAdd.forEach(obj => {
+    const newDocRef = collectionRef.doc();
+    batch.set(newDocRef, obj);
+    console.log("TCL: addCollectionAndItems -> newDocRef", newDocRef)
+  });
+
+  return await batch.commit();
+}
+
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
   'prompt': 'select_account'
