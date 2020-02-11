@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from 'react-redux';
 import { Route } from "react-router-dom";
 
@@ -6,18 +6,24 @@ import { firestore, convertCollectionsSnapshotToMap } from '../../firebase/fireb
 import { updateCollections } from '../../redux/shop/shop.actions';
 import CollectionsOverview from "../../components/collections-overview/collections-overview.component";
 import CollectionPage from "../collection/collection.component";
+import WithSpinner from '../../components/with-spinner/with-spinner.component';
+
+const CollectionsOverviewWithSpinner = WithSpinner(CollectionsOverview);
+const CollectionPageWithSpinner = WithSpinner(CollectionPage);
 
 const ShopPage = ({ match }) => {
 
-  let unsubscribeFromSnapshot = null;
+  const [loading, setIsLoading] = useState(true);
+  const unsubscribeFromSnapshot = useRef(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
     const collectionRef = firestore.collection('collections');
 
-    unsubscribeFromSnapshot = collectionRef.onSnapshot(async snapShot => {
+    unsubscribeFromSnapshot.current = collectionRef.onSnapshot(async snapShot => {
       const collectionsMap = convertCollectionsSnapshotToMap(snapShot);
       dispatch(updateCollections(collectionsMap));
+      setIsLoading(false);
      });
     
     return () => {
@@ -27,11 +33,23 @@ const ShopPage = ({ match }) => {
 
   return (
     <div className="shop-page">
-      <Route exact path={`${match.path}`} component={CollectionsOverview} />
-      <Route path={`${match.path}/:collectionId`} component={CollectionPage} />
+      <Route 
+        exact 
+        path={`${match.path}`} 
+        render={(props => 
+          <CollectionsOverviewWithSpinner 
+            isLoading={loading} {...props} 
+          /> 
+        )}
+      />
+
+      <Route 
+        path={`${match.path}/:collectionId`} 
+        render={props => (
+          <CollectionPageWithSpinner isLoading={loading} {...props} />
+        )} 
+      />
     </div>
 )};
-
-
 
 export default ShopPage;
